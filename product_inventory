@@ -1,0 +1,457 @@
+import time
+
+
+class Product:
+    change_log = []
+
+    def __init__(self, product_id, name, category, price, quantity):
+        self.product_id = product_id
+        self.name = name
+        self.category = category
+        self.price = price
+        self.quantity = quantity
+
+    def __str__(self):
+        return (f"ID: {self.product_id}, Name: {self.name}, Category: {self.category}, "
+                f"Price: £{format(self.price, '.2f')}, Qty: {self.quantity}")
+
+
+class StockItem(Product):
+
+    def __init__(self, product_id, name, category, price, quantity):
+        super().__init__(product_id, name, category, price, quantity)
+
+    def update_product_id(self, new_id):
+        pass  # need to be admin level, will build later
+
+    def update_product_name(self, new_name):
+        name = Failsafe.name_input_check(new_name)
+        Product.change_log.append(f"CHANGE | PRODUCT ID: {self.product_id} | NAME | "
+                                  f"{self.name} -> {name.capitalize()}")
+        print(f"Product name changed from {self.name} to {name.capitalize()}")
+        self.name = name.capitalize()
+
+    def update_product_category(self, new_cat):
+        category = Failsafe.category_input_check(new_cat)
+        Product.change_log.append(f"CHANGE | PRODUCT ID: {self.product_id} | CATEGORY | "
+                                  f"{self.category} -> {category.capitalize()}")
+        print(f"Product category changed from {self.category} to {category.capitalize()}")
+        self.category = category.capitalize()
+
+    def update_product_price(self, new_price):
+        price = Failsafe.price_input_check(new_price)
+        Product.change_log.append(f"CHANGE | PRODUCT ID: {self.product_id} | PRICE | "
+                                  f"£{format(self.price, '.2f')} -> £{format(float(price), '.2f')}")
+        print(f"Product price changed from £{format(self.price, '.2f')} to £{format(float(price), '.2f')}")
+        self.price = float(price)
+
+    def update_product_quantity(self, new_quantity):
+        quantity = Failsafe.quantity_input_check(new_quantity)
+        Product.change_log.append(f"CHANGE | PRODUCT ID: {self.product_id} | QUANTITY | "
+                                  f"{self.quantity} -> {quantity}")
+        print(f"Product quantity changed from {self.quantity} to {quantity}")
+        self.quantity = quantity
+
+
+class NewStockItem(StockItem):
+
+    def __init__(self, product_id=1000, name="", category="", price=0.0, quantity=0):
+        super().__init__(product_id, name, category, price, quantity)
+
+    def product_name(self):
+        name_input = input("Product name:\n")
+        name = Failsafe.name_input_check(name_input)
+        print(f"New product name: {name}\n")
+        self.name = name.capitalize()
+
+    def product_category(self):
+        category_input = input("Product Category:\n")
+        category = Failsafe.category_input_check(category_input)
+        print(f"New product category: {category}\n")
+        self.category = category.capitalize()
+
+    def product_price(self):
+        price_input = input("Product Price:\n")
+        price = Failsafe.price_input_check(price_input)
+        print(f"New product price: £{format(float(price), '.2f')}\n")
+        self.price = float(price)
+
+    def product_quantity(self):
+        quantity_input = input("Product Quantity:\n")
+        quantity = Failsafe.quantity_input_check(quantity_input)
+        print(f"New product quantity: {quantity}")
+        self.quantity = int(quantity)
+
+    def generate_product_id(self):
+        existing_product_id = []
+        # get all existing keys then make the new product key the max value +1
+        for key in store_items.values():
+            existing_product_id.append(key.product_id)
+            self.product_id = max(existing_product_id)+1
+
+    def __del__(self):
+        print("temporary stock item deleted")
+
+
+class Failsafe:
+
+    @staticmethod
+    def name_input_check(name):
+        while True:
+            if name.isnumeric() or name == "":  # name can only contain letters and not be blank
+                name = input("The Product name can only contain letters\n"
+                             "Please enter a different product name:\n")
+                continue
+            for store_item in store_items.values():  # check if name already exists
+                if name.lower() in store_item.name.lower():
+                    print(f"existing name")
+                    name = input("enter a different product name:\n")
+                    break
+            else:
+                return name
+
+    @staticmethod
+    def category_input_check(category):
+        while not category.isalpha():
+            category = input(f"Category must only be made up of letters with no spaces\n"
+                             f"Please enter a different category name:\n")
+            continue
+        return category
+
+    @staticmethod
+    def price_input_check(price):
+        while price.isalpha():
+            price = input(f"price must only be made up of numbers\n"
+                          f"Please enter a price:\n")
+            continue
+        return price
+
+    @staticmethod
+    def quantity_input_check(quantity):
+        while quantity.isnumeric() is False:
+            quantity = input(f"price must only be made up of numbers\n"
+                             f"Please enter a quantity:\n")
+            continue
+        return quantity
+
+    @staticmethod
+    def find_dictionary_key(id_value):
+        while True:
+            if not id_value.isnumeric() or len(id_value) != 3:
+                print("\n*** product code must only contain numbers and be 3 digit long ***")
+                id_value = input("Please enter a product id:\n")
+            else:
+                while True:
+                    for key, item in store_items.items():  # loop through the dictionary
+                        if id_value in str(item.product_id):  # find product based on product_id
+                            return key  # store the location of the object in the store_items dictionary
+
+                    id_value = input(f"Product code {id_value} does not exist.\n"
+                                     "Please enter a valid product code or type 0 (zero) to go to the main menu:\n")
+                    if id_value == "0":
+                        main()
+
+
+class Inventory:
+
+    @staticmethod
+    def all_products():
+        for i in store_items.values():
+            print(i)
+        input("Press enter to continue")
+
+    @staticmethod
+    def product_types():
+        unique_types = set()  # using set gets only unique values
+        for item_type in store_items.values():
+            unique_types.add(item_type.category)
+
+        while True:
+            print(f"\nThere are {len(unique_types)} different product types in the store")
+            option = input("\nPlease select an option\n"
+                           "1. See the list of product categories\n"
+                           "0. Return to inventory menu\n")
+
+            if option == "1":
+                print("PRODUCT CATEGORIES:")
+                print("\n".join(unique_types))
+                input("\nPress enter to return to the inventory menu")
+                inventory_menu()
+
+            if option == "0":
+                inventory_menu()
+
+            else:
+                input("\nInput not recognised press enter to continue")
+
+    @staticmethod
+    def stock_value():
+        total = 0
+        for item in store_items.values():
+            total += float(item.price) * int(item.quantity)
+        print(f"The total value of stock on hand is: {format(float(total), '.2f')}")
+        input("Press enter to continue")
+
+    @staticmethod
+    def product_change_log():
+        if len(Product.change_log) == 0:
+            print("The change log is empty\n")
+        else:
+            vertical_list = '\n'.join(Product.change_log)
+            print(f"Change log:\n{vertical_list}\n")
+        input("Press enter to continue\n")
+
+
+store_items = {1: StockItem(101, "Carrot", "Vegetable", 0.89, 106),
+               2: StockItem(102, "Tomato", "Vegetable", 0.65, 27),
+               3: StockItem(103, "Poppy seed", "Seeds", 1.25, 1005),
+               7: StockItem(104, "Cumin", "Spice", 2.90, 12),
+               5: StockItem(109, "Onion", "Vegetable", 0.30, 92),
+               6: StockItem(106, "Kale", "Vegetable", 1.20, 35)}
+
+
+def main():
+    while True:
+        option = input("*** MAIN MENU ***\n"
+                       "Please select an option\n"
+                       "1. Add a product\n"
+                       "2. Edit a product\n"
+                       "3. Remove product\n"
+                       "4. Inventory menu\n"
+                       "5. View product change log\n"
+                       "0. Quit program\n")
+
+        if option == "1":
+            add_product()
+        elif option == "2":
+            edit_product()
+        elif option == "3":
+            remove_product()
+        elif option == "4":
+            inventory_menu()
+        elif option == "5":
+            Inventory.product_change_log()
+        elif option == "0":
+            print("The program will close in:")
+            for second in range(0, 3):
+                print(3-second)
+                time.sleep(1)
+            quit()
+        else:
+            input("Input not recognised press enter to continue\n")
+
+
+def add_product():
+    print("\n*** New Product ***\n")
+    new_product = NewStockItem()  # set up temporary object
+
+    # input data into product fields
+    new_product.product_name()
+    new_product.product_category()
+    new_product.product_price()
+    new_product.product_quantity()
+
+    # generate new product id based off highest current id
+    new_product.generate_product_id()
+
+    # find unused dictionary key by sorting current keys and finding first unused key
+    new_store_items_key = 1
+    for existing_key in set(store_items.keys()):
+        if new_store_items_key == existing_key:
+            new_store_items_key += 1
+
+    # assign product to product dictionary
+    store_items[new_store_items_key] = new_product
+
+    # add product to change log
+    Product.change_log.append(f'PRODUCT ADDED: {new_product}')
+
+    print(f"\n*** NEW PRODUCT SUCCESSFULLY ADDED ***\n{new_product}\n")
+
+    main()
+
+
+def edit_product():
+    item_key = ""  # items index/key in the store items dictionary
+
+    def edit_product_menu():
+        while True:
+            option = input("\n*** EDIT PRODUCT MENU ***\n"
+                           "Please select an option\n"
+                           "1. Choose a product to update\n"
+                           "0. Return to main menu\n")
+
+            if option == "1":
+                enter_product_code()
+            elif option == "0":
+                print()
+                main()
+            else:
+                input("\nInput not recognised press enter to continue")
+
+    def enter_product_code():  # input to enter code and error check the input
+        while True:
+            nonlocal item_key
+
+            product_code = input('\nEnter the product code you wish to update or type "I" to view inventory:\n')
+            if product_code == "i":
+                print("Inventory")
+                Inventory.all_products()
+                continue
+            else:
+                item_key = Failsafe.find_dictionary_key(product_code)   # checks validity and returns dict key
+                check_product_is_correct()
+
+    def check_product_is_correct():
+        while True:
+            option = input(f"\nIs this the correct product?:\n{store_items[int(item_key)]}\n"
+                           "1. Yes\n"
+                           "2. No\n")
+            if option == "1":
+                product_edit_options()
+            elif option == "2":
+                input("Returning to the edit product menu, please press enter to continue")
+                edit_product_menu()
+            else:
+                input("Input not recognised press enter to continue\n")
+
+    def product_edit_options():
+        while True:
+            option = input("\nPlease select which part you want to update:\n"
+                           "1: Name\n"
+                           "2: Category\n"
+                           "3: Price\n"
+                           "4: Quantity on hand\n")
+
+            if option == "1":
+                name = input("Enter a new name:\n")
+                store_items[int(item_key)].update_product_name(name)
+
+            elif option == "2":
+                category = input("Enter a new category:\n")
+                store_items[int(item_key)].update_product_category(category)
+
+            elif option == "3":
+                price = input("enter a new price:\n")
+                store_items[int(item_key)].update_product_price(price)
+
+            elif option == "4":
+                quantity = input("enter a new quantity on hand:\n")
+                store_items[int(item_key)].update_product_quantity(quantity)
+
+            if option in ("1", "2", "3", "4"):
+                product_edit_secondary_options()
+
+            else:
+                print("\ninput not recognised\n")
+
+    def product_edit_secondary_options():
+        while True:
+            second_option = input("\nPlease pick and option\n"
+                                  f"1. Edit another part of product ID: {store_items[int(item_key)].product_id}\n"
+                                  "2. Edit a different product\n"
+                                  "3. Return to the main product edit menu\n"
+                                  "0. Return to the main menu\n")
+            if second_option == "1":
+                product_edit_options()
+            if second_option == "2":
+                edit_product()
+            if second_option == "3":
+                edit_product_menu()
+            if second_option.casefold() == "0":
+                print()
+                main()
+            else:
+                print("\ninput not recognised\n")
+
+    edit_product_menu()
+
+
+def remove_product():
+    item_key = ""  # items index/key in the store items dictionary
+
+    def remove_product_menu():
+        while True:
+            option = input("\n*** REMOVE PRODUCT ***\n"
+                           "Please select an option\n"
+                           "1. Choose a product to remove\n"
+                           "0. Return to main menu\n")
+
+            if option == "1":
+                enter_product_code()
+            if option == "0":
+                print()
+                main()
+            else:
+                input("\nInput not recognised press enter to continue")
+
+    def enter_product_code():  # input to enter code and error check the input
+        while True:
+            nonlocal item_key
+
+            initial_product_code = input('\nEnter the product code you wish to update or type "I" to view inventory:\n')
+            if initial_product_code == "i":
+                print("Inventory")
+                Inventory.all_products()
+                continue
+            else:
+                item_key = Failsafe.find_dictionary_key(initial_product_code)   # checks validity and returns dict key
+                check_product_is_correct()
+
+    def check_product_is_correct():
+        while True:
+            option = input(f"\nIs this the correct product?:\n{store_items[int(item_key)]}\n"
+                           "1. Yes\n"
+                           "2. No\n")
+            if option == "1":
+                confirm_remove()
+            if option == "2":
+                input("Returning to the edit product menu, please press enter to continue")
+                remove_product_menu()
+            else:
+                input("Input not recognised press enter to continue\n")
+
+    def confirm_remove():
+        while True:
+            remove = input('To confirm you want to remove this product please type "DELETE" in capitols\n"'
+                           'Alternatively type "0" (zero) to return to the main menu\n')
+            if remove == "DELETE":
+                print(f'\n{store_items[int(item_key)]}\n*** deleted from system ***\n')
+                Product.change_log.append(f'PRODUCT DELETED: {store_items[int(item_key)]}')
+                del store_items[int(item_key)]
+                main()
+            if remove == "0":
+                main()
+            else:
+                input("Input not recognised press enter to continue\n")
+
+    remove_product_menu()
+
+
+def inventory_menu():
+    while True:
+        option = input("\n*** INVENTORY MENU ***\n"
+                       "Please select an option\n"
+                       "1. Show all products\n"
+                       "2. Show all product types\n"
+                       "3. Total stock value\n"
+                       "4. View product change log\n"
+                       "0. Return to main menu\n")
+
+        if option == "1":
+            Inventory.all_products()
+        elif option == "2":
+            Inventory.product_types()
+        elif option == "3":
+            Inventory.stock_value()
+        elif option == "4":
+            Inventory.product_change_log()
+        elif option == "0":
+            print()
+            main()
+        else:
+            input("Input not recognised press enter to continue\n")
+
+
+if __name__ == "__main__":
+    main()
